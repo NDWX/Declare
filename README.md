@@ -17,28 +17,28 @@ Sample configuration file:
 
 ```json
 {
-		    "component_specifications":
-				{
-			        "AddWordDefinitionTask":
-              {
-			            "class": "AddWordDefinitionTask",
-			            "module": "StandardDictionaryUserTasks",
-                  "initArgs": [true]
-					    },
-					    "ListWordDefinitionsTask":
-					    {
-			            "class": "ListWordDefinitionsTask",
-						      "module": "StandardDictionaryUserTasks",
-						      "lifetime": "singleton"
-					    },
-					    "RemoveWordDefinitionTask":
-					    {
-			            "class": "RemoveWordDefinitionTask",
-						      "module": "StandardDictionaryUserTasks",
-  					      "lifetime": "singleton",
-  					      "initArgs": {"repeat": true}
-					    }
-				}
+	"component_specifications":
+	{
+		"AddWordDefinitionTask":
+		{
+			"class": "AddWordDefinitionTask",
+			"module": "StandardDictionaryUserTasks",
+			"initArgs": [true]
+		},
+		"ListWordDefinitionsTask":
+		{
+			"class": "ListWordDefinitionsTask",
+			"module": "StandardDictionaryUserTasks",
+			"lifetime": "singleton"
+		},
+		"RemoveWordDefinitionTask":
+		{
+			"class": "RemoveWordDefinitionTask",
+			"module": "StandardDictionaryUserTasks",
+			"lifetime": "singleton",
+			"initArgs": {"repeat": true}
+		}
+	}
 }
 ```
 
