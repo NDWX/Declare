@@ -46,7 +46,7 @@ The sample above declared three components:
 * *ListWordDefinitionsTask* is of type `ListWordDefinitionTask` that can be found in `StandardDictionaryUserTasks` module and it is also a singleton.
 * *RemoveWordDefinitionTask* is a singleton component of of type `RemoveWordDefinitionTask` that can be found in `StandardDictionaryUserTasks` module. This component will be initialized with one named argument. 
 
-# Usage
+## Usage
 
 Declared objects can be resolved through an instance of `Manager` object which can be instantiated by passing an instance of `Configuration` object as follow:
 ```python
