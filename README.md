@@ -1,6 +1,8 @@
 # Declare
 IoC container module for Python with simple programming and configuration interface.
 
+Declare enables implementation of extension-point/plugin in Python applications.
+
 ## Features
 
 * Simple configuration file with JSON
