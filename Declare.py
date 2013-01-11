@@ -64,13 +64,15 @@ class ComponentDeclaration(object) :
 class Configuration(object) :
 
 	__plugin_declarations__ = {}
+	__resource_declarations__ = {}
 
 	__string_formatter__ = string.Formatter()
 
-	def __init__(self, componentDeclarations):
+	def __init__(self, resourceDeclarations, componentDeclarations):
 		"""
 		Configuration can be created by providing a list of ComponentDeclaration object.
 		"""
+		self.__resource_declarations__ = resourceDeclarations
 
 		for declaration in componentDeclarations :
 			self.__plugin_declarations__[declaration.identifier()] = declaration
@@ -81,6 +83,9 @@ class Configuration(object) :
 	def plugins(self):
 		return self.__plugin_declarations__.itervalues()
 
+	def resources(self) :
+		return self.__resource_declarations__
+
 	@staticmethod
 	def read(filePath):
 		"""
@@ -89,12 +94,16 @@ class Configuration(object) :
 		Example of configuration file content:
 
 			{
+				"resources" :
+				{
+					"RepeatableTaskRepeat": true
+				}
 			    "component_specifications":
 				{
 			        "AddWordDefinitionTask": {
 			            "class": "AddWordDefinitionTask",
 			            "module": "StandardDictionaryUserTasks",
-						"initArgs": {"repeat": true}
+						"initArgs": "{$RepeatableTaskRepeat}"
 					},
 					"ListWordDefinitionsTask":
 					{
@@ -106,11 +115,13 @@ class Configuration(object) :
 					{
 			            "class": "RemoveWordDefinitionTask",
 						"module": "StandardDictionaryUserTasks"
+						"initArgs": "{$RepeatableTaskRepeat}"
 					}
 				}
 			}
 		"""
 
+		resourceDeclarations = {}
 		pluginDeclarations = []
 
 		file = open(filePath, "r")
@@ -121,6 +132,9 @@ class Configuration(object) :
 			raise
 		finally :
 			file.close()
+
+		if configurationObject.has_key("resources") :
+			resourceDeclarations = configurationObject["resources"]
 
 		for identifier, specification in configurationObject["component_specifications"].iteritems() :
 
@@ -139,7 +153,7 @@ class Configuration(object) :
 
 			pluginDeclarations.append(ComponentDeclaration(identifier, moduleName, className, initArgs, lifetime))
 
-		return Configuration(pluginDeclarations)
+		return Configuration(resourceDeclarations, pluginDeclarations)
 
 class __Specification__(object) :
 
@@ -176,6 +190,12 @@ class Manager(object) :
 		else :
 			return False
 
+	def __is_reference_to_resource__(self, value) :
+		if type(value) is string :
+			return value.startswith("{$") and value.endswith("}")
+		else :
+			return False
+
 	def __create_instance__(self, specification) :
 		"""
 		Create instance of a type based on a specification.
@@ -207,7 +227,7 @@ class Manager(object) :
 			for index in range(argumentsCount) : # evaluate each declared argument
 				argument = specification.init_args()[index]
 
-				if self.__is_reference_to_component__(argument) : # check that the argument is reference to another component
+				if self.__is_reference_to_component__(argument) : # check that argument is reference to another component
 					componentName = argument.strip(["{", "}"])
 
 					if componentName == "None" :
@@ -218,6 +238,17 @@ class Manager(object) :
 						arguments.append(self.__create_instance__(self.__named_component_specifications__[componentName]))
 					else :
 						raise ComponentSpecificationError(self.__format_string__("Unable to find component '{componentName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"componentName": componentName, "specification": specification}))
+
+				elif self.__is_reference_to_resource__(argument) : # check that argument is reference to a resource
+					resourceName = argument.strip(["{$", "}"])
+
+					if resourceName == "None" :
+						arguments.append(None)
+					if self.__configuration__.resources().has_key(resourceName) :
+						arguments.append(self.__configuration__.resources()[resourceName])
+					else :
+						raise ComponentSpecificationError(self.__format_string__("Unable to find resource '{resourceName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"resourceName": resourceName, "specification": specification}))
+
 				else:
 					arguments.append(argument)
 
