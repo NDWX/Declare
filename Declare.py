@@ -198,22 +198,22 @@ class Manager(object) :
 
 	def __resolve_init_argument__(self, value, specification) :
 
-		resolvedArgument = value
+		resolvedArgument = value # default resolved argument to 'value' as is
 
-		if type(value) == string :
+		if type(value) == string : # if resource value is string, it could be just a string or reference to either resource or component
 
-			if self.__is_reference_to_resource__(value) :
+			if self.__is_reference_to_resource__(value) : # resource is identified by the following format : {$name}
 
 				resourceName = value.strip(["{$", "}"])
 
-				if resourceName == "None" :
+				if resourceName == "None" : # if resource value is {$None}
 					resolvedArgument = None
-				if self.__configuration__.resources().has_key(resourceName) :
+				if self.__configuration__.resources().has_key(resourceName) :# check if resource with specified identifier exists (was declared)
 					resolvedArgument = self.__configuration__.resources()[resourceName]
-				else :
+				else : # if specified resource not found
 					raise ComponentSpecificationError(self.__format_string__("Unable to find resource '{resourceName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"resourceName": resourceName, "specification": specification}))
 
-			elif self.__is_reference_to_component__(value) :
+			elif self.__is_reference_to_component__(value) : # component is identified by the following format : {name}
 
 				componentName = value.strip(["{", "}"])
 
@@ -265,6 +265,7 @@ class Manager(object) :
 			arguments = {}
 
 			for name, value in specification.init_args().iteritems() : # evaluate each declared argument
+
 				if not name in expectedArguments.args :
 					raise ComponentError()
 
