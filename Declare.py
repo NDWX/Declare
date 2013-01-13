@@ -196,6 +196,36 @@ class Manager(object) :
 		else :
 			return False
 
+	def __resolve_init_argument__(self, value, specification) :
+
+		resolvedArgument = value
+
+		if type(value) == string :
+
+			if self.__is_reference_to_resource__(value) :
+
+				resourceName = value.strip(["{$", "}"])
+
+				if resourceName == "None" :
+					resolvedArgument = None
+				if self.__configuration__.resources().has_key(resourceName) :
+					resolvedArgument = self.__configuration__.resources()[resourceName]
+				else :
+					raise ComponentSpecificationError(self.__format_string__("Unable to find resource '{resourceName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"resourceName": resourceName, "specification": specification}))
+
+			elif self.__is_reference_to_component__(value) :
+
+				componentName = value.strip(["{", "}"])
+
+				if self.__named_singleton_components__.has_key(componentName) : # check if singleton with specified identifier exists
+					resolvedArgument = self.__named_singleton_components__[componentName]
+				elif self.__named_component_specifications__.has_key(componentName) : # check if specification with specified identifier exists
+					resolvedArgument = self.__create_instance__(self.__named_component_specifications__[componentName])
+				else :
+					raise ComponentSpecificationError(self.__format_string__("Unable to find component '{componentName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"componentName": componentName, "specification": specification}))
+
+		return resolvedArgument
+
 	def __create_instance__(self, specification) :
 		"""
 		Create instance of a type based on a specification.
@@ -227,30 +257,7 @@ class Manager(object) :
 			for index in range(argumentsCount) : # evaluate each declared argument
 				argument = specification.init_args()[index]
 
-				if self.__is_reference_to_component__(argument) : # check that argument is reference to another component
-					componentName = argument.strip(["{", "}"])
-
-					if componentName == "None" :
-						arguments.append(None)
-					elif self.__named_singleton_components__.has_key(componentName) : # check if singleton with specified identifier exists
-						arguments.append(self.__named_singleton_components__[componentName])
-					elif self.__named_component_specifications__.has_key(componentName) : # check if specification with specified identifier exists
-						arguments.append(self.__create_instance__(self.__named_component_specifications__[componentName]))
-					else :
-						raise ComponentSpecificationError(self.__format_string__("Unable to find component '{componentName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"componentName": componentName, "specification": specification}))
-
-				elif self.__is_reference_to_resource__(argument) : # check that argument is reference to a resource
-					resourceName = argument.strip(["{$", "}"])
-
-					if resourceName == "None" :
-						arguments.append(None)
-					if self.__configuration__.resources().has_key(resourceName) :
-						arguments.append(self.__configuration__.resources()[resourceName])
-					else :
-						raise ComponentSpecificationError(self.__format_string__("Unable to find resource '{resourceName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"resourceName": resourceName, "specification": specification}))
-
-				else:
-					arguments.append(argument)
+				arguments.append(self.__resolve_init_argument__(argument, specification))
 
 			instance = specification.type()(*arguments)
 
@@ -261,29 +268,7 @@ class Manager(object) :
 				if not name in expectedArguments.args :
 					raise ComponentError()
 
-				if self.__is_reference_to_component__(value) : # check that the argument is reference to another component
-					componentName = value.strip(["{", "}"])
-
-					if componentName == "None" :
-						arguments[name] = None
-					elif self.__named_singleton_components__.has_key(componentName) :# check if singleton with specified identifier exists
-						arguments[name] = self.__named_singleton_components__[componentName]
-					elif self.__named_component_specifications__.has_key(componentName) : # check if specification with specified identifier exists
-						arguments[name] = self.__create_instance__(self.__named_component_specifications__[componentName])
-					else :
-						raise ComponentSpecificationError(self.__format_string__("Unable to find component '{componentName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"componentName": componentName, "specification": specification}))
-
-				elif self.__is_reference_to_resource__(value) : # check that argument is reference to a resource
-					resourceName = value.strip(["{$", "}"])
-
-					if resourceName == "None" :
-						arguments[name] = None
-					if self.__configuration__.resources().has_key(resourceName) :
-						arguments[name] = self.__configuration__.resources()[resourceName]
-					else :
-						raise ComponentSpecificationError(self.__format_string__("Unable to find resource '{resourceName}' as init argument '{argumentName}' for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"argumentName": name, "resourceName": resourceName, "specification": specification}))
-				else:
-					arguments[name] = value
+				arguments[name] = self.__resolve_init_argument__(value, specification)
 
 			instance = specification.type()(**arguments)
 		else : # if (presumed) no arguments are specified
