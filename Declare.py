@@ -245,7 +245,7 @@ class Manager(object) :
 
 		# Evaluate declared arguments.
 		# Each declared argument can be evaluated to one of the following:
-		# - None, which is represented by "{None}"
+		# - None, which is represented by "{$None}"
 		# - Component, which is represented by "{componentDeclarationIdentifier}".
 		#   The identified component will be resolved by either referencing a singleton component or creating a new instance of non singleton component
 		#   An error will be raised if the no declaration can be found the the specified identifier
@@ -266,7 +266,7 @@ class Manager(object) :
 
 			for name, value in specification.init_args().iteritems() : # evaluate each declared argument
 
-				if not name in expectedArguments.args :
+				if not name in expectedArguments.args : # if declared argument name is not in init argument list
 					raise ComponentError()
 
 				arguments[name] = self.__resolve_init_argument__(value, specification)
@@ -279,6 +279,7 @@ class Manager(object) :
 
 	def __registerSingleton__(self, type, instance) :
 
+		# get list (object) of singletons for 'type'
 		if self.__singleton_components__.has_key(type) :
 			pluginInstances = self.__singleton_components__[type]
 		else :
@@ -289,13 +290,14 @@ class Manager(object) :
 
 	def __registerSpecification__(self, type, specification) :
 
+		# get list (object) of specifications for 'type'
 		if self.__plugin_specifications__.has_key(type) :
 			specifications = self.__plugin_specifications__[type]
 		else :
 			specifications = []
 			self.__plugin_specifications__[type] = specifications
 
-		if not specification in specifications :
+		if not specification in specifications : # if specification is not known for type
 			specifications.append(specification)
 
 	def __processSingletonDeclaration__(self, declaration, pluginClass) :
@@ -373,12 +375,12 @@ class Manager(object) :
 		"""
 		components = []
 
-		if (lifetime == "all" or lifetime == "singleton") and self.__singleton_components__.has_key(type ):
-			for component in self.__singleton_components__[type] :
+		if (lifetime == "all" or lifetime == "singleton") and self.__singleton_components__.has_key(type ): # if singleton is requested and identified component is singleton
+			for component in self.__singleton_components__[type] : # return all instances of specified type or types inheriting specified type
 				components.append(component)
 
-		if (lifetime == "all" or lifetime != "singleton") and self.__plugin_specifications__.has_key(type) :
-			for specification in self.__plugin_specifications__[type] :
+		if (lifetime == "all" or lifetime != "singleton") and self.__plugin_specifications__.has_key(type) : # if non-singleton is requested and specified identifier is known
+			for specification in self.__plugin_specifications__[type] : # create instance of specified type or types inheriting specified type
 				components.append(self.__create_instance__(specification))
 
 		return components
@@ -389,9 +391,9 @@ class Manager(object) :
 		"""
 		component = None
 
-		if self.__named_singleton_components__.has_key(identifier) :
-			component = self.__named_singleton_components__[identifier]
+		if self.__named_singleton_components__.has_key(identifier) : # if identified component is singleton
+			component = self.__named_singleton_components__[identifier] # retrieve component from singleton dictionary
 		elif self.__named_component_specifications__.has_key(identifier) :
-			component = self.__create_instance__(self.__named_component_specifications__[identifier])
+			component = self.__create_instance__(self.__named_component_specifications__[identifier]) # create instance of identified component
 
 		return component
