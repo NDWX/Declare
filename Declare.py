@@ -1,4 +1,3 @@
-
 #__name__ = "Declare"
 
 __author__ = "ND"
@@ -34,9 +33,11 @@ class ComponentDeclaration(object) :
 		"""
 		identifier : String identifier of the component declaration.
 		moduleName : Name of the module in which the component class can be found.
-		className : Name of the component class.
-		initArgs : A list or dictionary of arguments to be passed to the __init__ function when constructing a new instance of the class. This argument is optional and has default of None.
-		lifetime : This argument specifies the lifetime of the declared component. This argument is only required to configure the component as a 'singleton'.
+		className  : Name of the component class.
+		initArgs   : A list or dictionary of arguments to be passed to the __init__ function when
+		             constructing a new instance of the class. This argument is optional and has default of None.
+		lifetime   : This argument specifies the lifetime of the declared component. 
+		             This argument is only required to configure the component as a 'singleton'.
 		"""
 
 		self.__module_name__ = moduleName
@@ -208,7 +209,7 @@ class Manager(object) :
 
 				if resourceName == "None" : # if resource value is {$None}
 					resolvedArgument = None
-				if self.__configuration__.resources().has_key(resourceName) :# check if resource with specified identifier exists (was declared)
+				if self.__configuration__.resources().has_key(resourceName) :# if resource with specified identifier exists (was declared)
 					resolvedArgument = self.__configuration__.resources()[resourceName]
 				else : # if specified resource not found
 					raise ComponentSpecificationError(self.__format_string__("Unable to find resource '{resourceName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"resourceName": resourceName, "specification": specification}))
@@ -217,9 +218,9 @@ class Manager(object) :
 
 				componentName = value.strip(["{", "}"])
 
-				if self.__named_singleton_components__.has_key(componentName) : # check if singleton with specified identifier exists
+				if self.__named_singleton_components__.has_key(componentName) : # if singleton with specified identifier exists
 					resolvedArgument = self.__named_singleton_components__[componentName]
-				elif self.__named_component_specifications__.has_key(componentName) : # check if specification with specified identifier exists
+				elif self.__named_component_specifications__.has_key(componentName) : # if specification with specified identifier exists
 					resolvedArgument = self.__create_instance__(self.__named_component_specifications__[componentName])
 				else :
 					raise ComponentSpecificationError(self.__format_string__("Unable to find component '{componentName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"componentName": componentName, "specification": specification}))
@@ -238,7 +239,8 @@ class Manager(object) :
 		argumentsCount = len(specification.init_args()) if specification.init_args() != None else 0
 		requiredArgumentsCount = len(expectedArguments.args) - (defaultsCount + 1)
 
-		# raise an error if the number of arguments declared in specification is less than the number of non optional arguments required by the __init__ function
+		# raise an error if the number of arguments declared in specification is less than the number of
+		# non optional arguments required by the __init__ function
 		if argumentsCount < requiredArgumentsCount :
 			raise StandardError("Component declaration does not have enough init arguments")
 
@@ -247,7 +249,8 @@ class Manager(object) :
 		# Each declared argument can be evaluated to one of the following:
 		# - None, which is represented by "{$None}"
 		# - Component, which is represented by "{componentDeclarationIdentifier}".
-		#   The identified component will be resolved by either referencing a singleton component or creating a new instance of non singleton component
+		#   The identified component will be resolved by either referencing a singleton component or
+		#   creating a new instance of non singleton component
 		#   An error will be raised if the no declaration can be found the the specified identifier
 		# - Primitive types
 
@@ -266,7 +269,8 @@ class Manager(object) :
 
 			for name, value in specification.init_args().iteritems() : # evaluate each declared argument
 
-				if not name in expectedArguments.args : # if declared argument name is not in init argument list
+				# if declared argument name is not in init argument list
+				if not name in expectedArguments.args : 
 					raise ComponentError()
 
 				arguments[name] = self.__resolve_init_argument__(value, specification)
@@ -342,12 +346,14 @@ class Manager(object) :
 			pluginModule = imp.load_module(declaration.module_name(), moduleInfo[0], moduleInfo[1], moduleInfo[2]) #possible exception
 			self.__plugin_modules__[declaration.module_name()] = pluginModule
 
-		if not hasattr(pluginModule, declaration.class_name()) : # check that module has attribute with name equals to declared class name
+		# check that module has attribute with name equals to declared class name
+		if not hasattr(pluginModule, declaration.class_name()) : 
 			raise ComponentError(self.__format_string__("Unable to find class '{class}' in modules '{module}' for plugin: '{plugin}'", [], {"class": declaration.class_name(), "module": declaration.module_name(), "plugin": declaration.identifier()}) )
 
 		componentClass = getattr(pluginModule, declaration.class_name())
 
-		if not isinstance(componentClass, (type, types.ClassType)) : # check that the identified module attribute is a class
+		# check that the identified module attribute is a class
+		if not isinstance(componentClass, (type, types.ClassType)) : 
 			raise ComponentError(self.__format_string__("'{class}' is not a class in modules '{module}' for plugin: '{plugin}'", [], {"class": declaration.class_name(), "module": declaration.module_name(), "plugin": declaration.identifier()}) )
 
 		if declaration.lifetime() == "singleton" :
@@ -375,12 +381,16 @@ class Manager(object) :
 		"""
 		components = []
 
-		if (lifetime == "all" or lifetime == "singleton") and self.__singleton_components__.has_key(type ): # if singleton is requested and identified component is singleton
-			for component in self.__singleton_components__[type] : # return all instances of specified type or types inheriting specified type
+		# if singleton is requested and identified component is singleton
+		if (lifetime == "all" or lifetime == "any" or lifetime == "singleton") and self.__singleton_components__.has_key(type ): 
+			# gather all instances of specified type or types inheriting specified type
+			for component in self.__singleton_components__[type] : 
 				components.append(component)
 
-		if (lifetime == "all" or lifetime != "singleton") and self.__plugin_specifications__.has_key(type) : # if non-singleton is requested and specified identifier is known
-			for specification in self.__plugin_specifications__[type] : # create instance of specified type or types inheriting specified type
+		# if non-singleton is requested and specified identifier is known
+		if (lifetime == "all" or lifetime == "any" or lifetime != "singleton") and self.__plugin_specifications__.has_key(type) : 
+			# create and gather instances of specified type or types inheriting specified type
+			for specification in self.__plugin_specifications__[type] : 
 				components.append(self.__create_instance__(specification))
 
 		return components
@@ -392,8 +402,10 @@ class Manager(object) :
 		component = None
 
 		if self.__named_singleton_components__.has_key(identifier) : # if identified component is singleton
-			component = self.__named_singleton_components__[identifier] # retrieve component from singleton dictionary
+			# retrieve component from singleton dictionary
+			component = self.__named_singleton_components__[identifier] 
 		elif self.__named_component_specifications__.has_key(identifier) :
-			component = self.__create_instance__(self.__named_component_specifications__[identifier]) # create instance of identified component
+			# create instance of identified component
+			component = self.__create_instance__(self.__named_component_specifications__[identifier]) 
 
 		return component
