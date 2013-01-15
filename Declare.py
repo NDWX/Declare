@@ -2,7 +2,10 @@
 
 __author__ = "ND"
 
-__doc__ = "Declare is designed as, among other things, an IoC container with simple programming interface and configuration.\n\nComponentManager class provides simple interface to resolve/instantiate components configured in PluginConfiguration object.\n\nPluginConfiguration can be configured programmatically (although it wouldn't make much sense) or via a JSON file that can be read via the 'read' static method."
+__doc__ = "Declare is designed as, among other things, an IoC container with simple programming interface and"
+"configuration.\n\nComponentManager class provides simple interface to resolve/instantiate components configured in"
+"PluginConfiguration object.\n\nPluginConfiguration can be configured programmatically (although it wouldn't "
+"make much sense) or via a JSON file that can be read via the 'read' static method."
 
 import string
 import json
@@ -10,36 +13,34 @@ import imp
 import types
 import inspect
 
-class ComponentError(StandardError) :
 
+class ComponentError(StandardError):
 	def __init__(self, *args, **kwargs):
 		super(StandardError, self).__init__(args, kwargs)
 
 
-class ComponentSpecificationError(ComponentError) :
-
+class ComponentSpecificationError(ComponentError):
 	def __init__(self, *args, **kwargs):
 		super(StandardError, self).__init__(args, kwargs)
 
 
-class ComponentDeclaration(object) :
+class ComponentDeclaration(object):
 	__module_name__ = None
 	__class_name__ = None
 	__identifier__ = ""
 	__lifetime__ = ""
 	__init_args__ = None
 
-	def __init__(self, identifier, moduleName, className, initArgs = None, lifetime = "") :
+	def __init__(self, identifier, moduleName, className, initArgs=None, lifetime=""):
 		"""
-		identifier : String identifier of the component declaration.
-		moduleName : Name of the module in which the component class can be found.
-		className  : Name of the component class.
-		initArgs   : A list or dictionary of arguments to be passed to the __init__ function when
-		             constructing a new instance of the class. This argument is optional and has default of None.
-		lifetime   : This argument specifies the lifetime of the declared component. 
-		             This argument is only required to configure the component as a 'singleton'.
+		identifier: String identifier of the component declaration.
+		moduleName: Name of the module in which the component class can be found.
+		className: Name of the component class.
+		initArgs : A list or dictionary of arguments to be passed to the __init__ function when
+		constructing a new instance of the class. This argument is optional and has default of None.
+		lifetime : This argument specifies the lifetime of the declared component.
+		This argument is only required to configure the component as a 'singleton'.
 		"""
-
 		self.__module_name__ = moduleName
 		self.__class_name__ = className
 		self.__identifier__ = identifier
@@ -58,12 +59,11 @@ class ComponentDeclaration(object) :
 	def lifetime(self):
 		return self.__lifetime__
 
-	def init_args(self) :
+	def init_args(self):
 		return self.__init_args__
 
 
-class Configuration(object) :
-
+class Configuration(object):
 	__plugin_declarations__ = {}
 	__resource_declarations__ = {}
 
@@ -75,7 +75,7 @@ class Configuration(object) :
 		"""
 		self.__resource_declarations__ = resourceDeclarations
 
-		for declaration in componentDeclarations :
+		for declaration in componentDeclarations:
 			self.__plugin_declarations__[declaration.identifier()] = declaration
 
 	def __getitem__(self, item):
@@ -84,7 +84,7 @@ class Configuration(object) :
 	def plugins(self):
 		return self.__plugin_declarations__.itervalues()
 
-	def resources(self) :
+	def resources(self):
 		return self.__resource_declarations__
 
 	@staticmethod
@@ -94,86 +94,84 @@ class Configuration(object) :
 
 		Example of configuration file content:
 
+		{
+			"resources":
 			{
-				"resources" :
+				"RepeatableTaskRepeat": true
+			}
+			"component_specifications":
+			{
+				"AddWordDefinitionTask":
 				{
-					"RepeatableTaskRepeat": true
-				}
-			    "component_specifications":
+					"class": "AddWordDefinitionTask",
+					"module": "StandardDictionaryUserTasks",
+					"initArgs": "{$RepeatableTaskRepeat}"
+				},
+				"ListWordDefinitionsTask":
 				{
-			        "AddWordDefinitionTask": {
-			            "class": "AddWordDefinitionTask",
-			            "module": "StandardDictionaryUserTasks",
-						"initArgs": "{$RepeatableTaskRepeat}"
-					},
-					"ListWordDefinitionsTask":
-					{
-			            "class": "ListWordDefinitionsTask",
-						"module": "StandardDictionaryUserTasks",
-						"lifetime": "singleton"
-					},
-					"RemoveWordDefinitionTask":
-					{
-			            "class": "RemoveWordDefinitionTask",
-						"module": "StandardDictionaryUserTasks"
-						"initArgs": "{$RepeatableTaskRepeat}"
-					}
+					"class": "ListWordDefinitionsTask",
+					"module": "StandardDictionaryUserTasks",
+					"lifetime": "singleton"
+				},
+				"RemoveWordDefinitionTask":
+				{
+					"class": "RemoveWordDefinitionTask",
+					"module": "StandardDictionaryUserTasks"
+					"initArgs": "{$RepeatableTaskRepeat}"
 				}
 			}
+		}
 		"""
-
 		resourceDeclarations = {}
 		pluginDeclarations = []
 
 		file = open(filePath, "r")
 
-		try :
+		try:
 			configurationObject = json.load(file)
-		except :
+		except:
 			raise
-		finally :
+		finally:
 			file.close()
 
-		if configurationObject.has_key("resources") :
+		if configurationObject.has_key("resources"):
 			resourceDeclarations = configurationObject["resources"]
 
-		for identifier, specification in configurationObject["component_specifications"].iteritems() :
-
+		for identifier, specification in configurationObject["component_specifications"].iteritems():
 			className = specification["class"]
 			moduleName = specification["module"]
 
-			if specification.has_key("lifetime") :
+			if specification.has_key("lifetime"):
 				lifetime = specification["lifetime"]
-			else :
+			else:
 				lifetime = ""
 
-			if specification.has_key("initArgs") :
+			if specification.has_key("initArgs"):
 				initArgs = specification["initArgs"]
-			else :
+			else:
 				initArgs = None
 
 			pluginDeclarations.append(ComponentDeclaration(identifier, moduleName, className, initArgs, lifetime))
 
 		return Configuration(resourceDeclarations, pluginDeclarations)
 
-class __Specification__(object) :
 
+class __Specification__(object):
 	__init_args__ = None
 	__class__ = None
 
-	def __init__(self, type, initArgs) :
+	def __init__(self, type, initArgs):
 		self.__class__ = type
 		self.__init_args__ = initArgs
 
-	def type(self) :
+	def type(self):
 		return self.__class__
 
-	def init_args(self) :
+	def init_args(self):
 		return self.__init_args__
 
 
-class Manager(object) :
-
+class Manager(object):
 	__configuration__ = None
 	__plugin_modules__ = {}
 
@@ -185,63 +183,78 @@ class Manager(object) :
 
 	__format_string__ = string.Formatter().vformat
 
-	def __is_reference_to_component__(self, value) :
-		if type(value) is string :
+	def __is_reference_to_component__(self, value):
+		# component is identified by the following format: {name}
+		if type(value) is string:
 			return value.startswith("{") and value.endswith("}")
-		else :
+		else:
 			return False
 
-	def __is_reference_to_resource__(self, value) :
-		if type(value) is string :
+	def __is_reference_to_resource__(self, value):
+		# resource is identified by the following format: {$name}
+		if type(value) is string:
 			return value.startswith("{$") and value.endswith("}")
-		else :
+		else:
 			return False
 
-	def __resolve_init_argument__(self, value, specification) :
+	def __resolve_init_argument__(self, value, specification):
+		# default resolved argument to 'value' as is
+		resolvedArgument = value
 
-		resolvedArgument = value # default resolved argument to 'value' as is
-
-		if type(value) == string : # if resource value is string, it could be just a string or reference to either resource or component
-
-			if self.__is_reference_to_resource__(value) : # resource is identified by the following format : {$name}
+		# if resource value is string, it could be just a string or reference to either resource or component
+		if type(value) == string:
+			if self.__is_reference_to_resource__(value):
 
 				resourceName = value.strip(["{$", "}"])
 
-				if resourceName == "None" : # if resource value is {$None}
+				if resourceName == "None":
+					# if resource value is {$None}
 					resolvedArgument = None
-				if self.__configuration__.resources().has_key(resourceName) :# if resource with specified identifier exists (was declared)
+				if self.__configuration__.resources().has_key(resourceName):
+					# if resource with specified identifier exists (was declared)
 					resolvedArgument = self.__configuration__.resources()[resourceName]
-				else : # if specified resource not found
-					raise ComponentSpecificationError(self.__format_string__("Unable to find resource '{resourceName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"resourceName": resourceName, "specification": specification}))
+				else:
+					# if specified resource not found
+					raise ComponentSpecificationError(self.__format_string__(
+								"Unable to find resource '{resourceName}'"
+								"as init argument for {specification.__class__.__name__},"
+								"{specification.__class__.__module__}.",
+								[], {"resourceName": resourceName, "specification": specification}))
 
-			elif self.__is_reference_to_component__(value) : # component is identified by the following format : {name}
+			elif self.__is_reference_to_component__(value):
 
 				componentName = value.strip(["{", "}"])
 
-				if self.__named_singleton_components__.has_key(componentName) : # if singleton with specified identifier exists
+				# if singleton with specified identifier exists
+				if self.__named_singleton_components__.has_key(componentName):
 					resolvedArgument = self.__named_singleton_components__[componentName]
-				elif self.__named_component_specifications__.has_key(componentName) : # if specification with specified identifier exists
+				elif self.__named_component_specifications__.has_key(componentName):
+					# if specification with specified identifier exists
 					resolvedArgument = self.__create_instance__(self.__named_component_specifications__[componentName])
-				else :
-					raise ComponentSpecificationError(self.__format_string__("Unable to find component '{componentName}' as init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.", [], {"componentName": componentName, "specification": specification}))
+				else:
+					raise ComponentSpecificationError(self.__format_string__(
+						"Unable to find component '{componentName}' as"
+						"init argument for {specification.__class__.__name__}, {specification.__class__.__module__}.",
+						[], {"componentName": componentName, "specification": specification}))
 
 		return resolvedArgument
 
-	def __create_instance__(self, specification) :
+	def __create_instance__(self, specification):
 		"""
 		Create instance of a type based on a specification.
+		:rtype: object
 		"""
 		instance = None
 
 		expectedArguments = inspect.getargspec(specification.type().__init__)
 
-		defaultsCount = len(expectedArguments.defaults) if expectedArguments.defaults != None else 0
-		argumentsCount = len(specification.init_args()) if specification.init_args() != None else 0
+		defaultsCount = len(expectedArguments.defaults) if expectedArguments.defaults is not None else 0
+		argumentsCount = len(specification.init_args()) if specification.init_args() is not None else 0
 		requiredArgumentsCount = len(expectedArguments.args) - (defaultsCount + 1)
 
 		# raise an error if the number of arguments declared in specification is less than the number of
 		# non optional arguments required by the __init__ function
-		if argumentsCount < requiredArgumentsCount :
+		if argumentsCount < requiredArgumentsCount:
 			raise StandardError("Component declaration does not have enough init arguments")
 
 
@@ -254,57 +267,61 @@ class Manager(object) :
 		#   An error will be raised if the no declaration can be found the the specified identifier
 		# - Primitive types
 
-		if type(specification.init_args()) == list : # if arguments are declared as list
+		# if arguments are declared as list
+		if type(specification.init_args()) == list:
 			arguments = []
 
-			for index in range(argumentsCount) : # evaluate each declared argument
+			# evaluate each declared argument
+			for index in range(argumentsCount):
 				argument = specification.init_args()[index]
 
 				arguments.append(self.__resolve_init_argument__(argument, specification))
 
 			instance = specification.type()(*arguments)
 
-		elif type(specification.init_args()) == dict : # if arguments are declared as dictionary
+		elif type(specification.init_args()) == dict:
+			# if arguments are declared as dictionary
 			arguments = {}
 
-			for name, value in specification.init_args().iteritems() : # evaluate each declared argument
+			# evaluate each declared argument
+			for name, value in specification.init_args().iteritems():
 
 				# if declared argument name is not in init argument list
-				if not name in expectedArguments.args : 
+				if not name in expectedArguments.args:
 					raise ComponentError()
 
 				arguments[name] = self.__resolve_init_argument__(value, specification)
 
 			instance = specification.type()(**arguments)
-		else : # if (presumed) no arguments are specified
+		else:
+			# if (presumed) no arguments are specified
 			instance = specification.type()()
 
 		return instance
 
-	def __registerSingleton__(self, type, instance) :
-
+	def __registerSingleton__(self, type, instance):
 		# get list (object) of singletons for 'type'
-		if self.__singleton_components__.has_key(type) :
+		if self.__singleton_components__.has_key(type):
 			pluginInstances = self.__singleton_components__[type]
-		else :
+		else:
 			pluginInstances = []
 			self.__singleton_components__[type] = pluginInstances
 
 		pluginInstances.append(instance)
 
-	def __registerSpecification__(self, type, specification) :
-
+	def __registerSpecification__(self, type, specification):
 		# get list (object) of specifications for 'type'
-		if self.__plugin_specifications__.has_key(type) :
+		if self.__plugin_specifications__.has_key(type):
 			specifications = self.__plugin_specifications__[type]
-		else :
+		else:
 			specifications = []
 			self.__plugin_specifications__[type] = specifications
 
-		if not specification in specifications : # if specification is not known for type
+		# if specification is not known for type
+		if not specification in specifications:
 			specifications.append(specification)
 
-	def __processSingletonDeclaration__(self, declaration, pluginClass) :
+	def __processSingletonDeclaration__(self, declaration, pluginClass):
 		"""
 		Create and register component specification for future instantiation
 		"""
@@ -313,13 +330,13 @@ class Manager(object) :
 		self.__named_singleton_components__[declaration.identifier] = pluginInstance
 		self.__registerSingleton__(pluginClass, pluginInstance)
 
-		for base in pluginClass.__bases__ :
-			if base == object :
+		for base in pluginClass.__bases__:
+			if base == object:
 				continue
 
 			self.__registerSingleton__(base, pluginInstance)
 
-	def __processNonSingletonDeclaration__(self, declaration, pluginClass) :
+	def __processNonSingletonDeclaration__(self, declaration, pluginClass):
 		"""
 		Create and register instance of the component
 		"""
@@ -328,49 +345,57 @@ class Manager(object) :
 
 		self.__registerSpecification__(pluginClass, specification)
 
-		for base in pluginClass.__bases__ :
-			if base == object :
+		for base in pluginClass.__bases__:
+			if base == object:
 				continue
 
 			self.__registerSpecification__(base, specification)
 
-	def __processDeclaration__(self, declaration) :
+	def __processDeclaration__(self, declaration):
 		"""
 		Create specification or component instance based on declaration
 
 		"""
-		if self.__plugin_modules__.has_key(declaration.module_name()) : # if module has been loaded before
+		# if module has been loaded before
+		if self.__plugin_modules__.has_key(declaration.module_name()):
 			pluginModule = self.__plugin_modules__[declaration.module_name()]
-		else : # otherwise load and cache module
-			moduleInfo = imp.find_module(declaration.module_name()) #possible ImportError
-			pluginModule = imp.load_module(declaration.module_name(), moduleInfo[0], moduleInfo[1], moduleInfo[2]) #possible exception
+		else:
+		# otherwise load and cache module
+			moduleInfo = imp.find_module(declaration.module_name())
+			pluginModule = imp.load_module(declaration.module_name(), moduleInfo[0], moduleInfo[1], moduleInfo[2])
 			self.__plugin_modules__[declaration.module_name()] = pluginModule
 
 		# check that module has attribute with name equals to declared class name
-		if not hasattr(pluginModule, declaration.class_name()) : 
-			raise ComponentError(self.__format_string__("Unable to find class '{class}' in modules '{module}' for plugin: '{plugin}'", [], {"class": declaration.class_name(), "module": declaration.module_name(), "plugin": declaration.identifier()}) )
+		if not hasattr(pluginModule, declaration.class_name()):
+			raise ComponentError(
+				self.__format_string__("Unable to find class '{class}' in modules '{module}' for plugin: '{plugin}'",
+					[], {"class": declaration.class_name(), "module": declaration.module_name(),
+					     "plugin": declaration.identifier()}))
 
 		componentClass = getattr(pluginModule, declaration.class_name())
 
 		# check that the identified module attribute is a class
-		if not isinstance(componentClass, (type, types.ClassType)) : 
-			raise ComponentError(self.__format_string__("'{class}' is not a class in modules '{module}' for plugin: '{plugin}'", [], {"class": declaration.class_name(), "module": declaration.module_name(), "plugin": declaration.identifier()}) )
+		if not isinstance(componentClass, (type, types.ClassType)):
+			raise ComponentError(
+				self.__format_string__("'{class}' is not a class in modules '{module}' for plugin: '{plugin}'", [],
+				{"class": declaration.class_name(), "module": declaration.module_name(),
+					"plugin": declaration.identifier()}))
 
-		if declaration.lifetime() == "singleton" :
+		if declaration.lifetime() == "singleton":
 			self.__processSingletonDeclaration__(declaration, componentClass)
 		else:
 			self.__processNonSingletonDeclaration__(declaration, componentClass)
 
-	def __init__(self, configuration) :
+	def __init__(self, configuration):
 		"""
 		Initiate ComponentManager with a Configuration object
 		"""
 		self.__configuration__ = configuration
 
-		for declaration in configuration.plugins() :
+		for declaration in configuration.plugins():
 			self.__processDeclaration__(declaration)
 
-	def get_components_of_type(self, type, lifetime="all") :
+	def get_components_of_type(self, type, lifetime="all"):
 		"""
 		Get components which are instances of or inherits specified type.
 
@@ -382,30 +407,33 @@ class Manager(object) :
 		components = []
 
 		# if singleton is requested and identified component is singleton
-		if (lifetime == "all" or lifetime == "any" or lifetime == "singleton") and self.__singleton_components__.has_key(type ): 
+		if (lifetime == "all" or lifetime == "any" or lifetime == "singleton") \
+			and self.__singleton_components__.has_key(type):
 			# gather all instances of specified type or types inheriting specified type
-			for component in self.__singleton_components__[type] : 
+			for component in self.__singleton_components__[type]:
 				components.append(component)
 
 		# if non-singleton is requested and specified identifier is known
-		if (lifetime == "all" or lifetime == "any" or lifetime != "singleton") and self.__plugin_specifications__.has_key(type) : 
+		if (lifetime == "all" or lifetime == "any" or lifetime != "singleton") \
+				and self.__plugin_specifications__.has_key(type):
 			# create and gather instances of specified type or types inheriting specified type
-			for specification in self.__plugin_specifications__[type] : 
+			for specification in self.__plugin_specifications__[type]:
 				components.append(self.__create_instance__(specification))
 
 		return components
 
-	def get_component(self, identifier) :
+	def get_component(self, identifier):
 		"""
 		Get component with specified identifier
 		"""
 		component = None
 
-		if self.__named_singleton_components__.has_key(identifier) : # if identified component is singleton
+		# if identified component is singleton
+		if self.__named_singleton_components__.has_key(identifier):
 			# retrieve component from singleton dictionary
-			component = self.__named_singleton_components__[identifier] 
-		elif self.__named_component_specifications__.has_key(identifier) :
+			component = self.__named_singleton_components__[identifier]
+		elif self.__named_component_specifications__.has_key(identifier):
 			# create instance of identified component
-			component = self.__create_instance__(self.__named_component_specifications__[identifier]) 
+			component = self.__create_instance__(self.__named_component_specifications__[identifier])
 
 		return component
