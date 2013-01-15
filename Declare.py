@@ -2,9 +2,9 @@
 
 __author__ = "ND"
 
-__doc__ = "Declare is designed as, among other things, an IoC container with simple programming interface and"
-"configuration.\n\nComponentManager class provides simple interface to resolve/instantiate components configured in"
-"PluginConfiguration object.\n\nPluginConfiguration can be configured programmatically (although it wouldn't "
+__doc__ = "Declare is designed as, among other things, an IoC container with simple programming interface and " \
+"configuration.\n\nComponentManager class provides simple interface to resolve/instantiate components configured in"\
+"PluginConfiguration object.\n\nPluginConfiguration can be configured programmatically (although it wouldn't "\
 "make much sense) or via a JSON file that can be read via the 'read' static method."
 
 import string
@@ -244,7 +244,7 @@ class Manager(object):
 		Create instance of a type based on a specification.
 		:rtype: object
 		"""
-		instance = None
+		#instance = None
 
 		expectedArguments = inspect.getargspec(specification.type().__init__)
 
