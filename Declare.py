@@ -79,7 +79,12 @@ class Configuration(object):
 			self.__plugin_declarations__[declaration.identifier()] = declaration
 
 	def __getitem__(self, item):
-		return self.__plugin_declarations__[item]
+		plugin = None
+
+		if self.__plugin_declarations__.has_key(item):
+			plugin = self.__plugin_declarations__[item]
+
+		return plugin
 
 	def plugins(self):
 		return self.__plugin_declarations__.itervalues()
@@ -98,7 +103,7 @@ class Configuration(object):
 			"resources":
 			{
 				"RepeatableTaskRepeat": true
-			}
+			},
 			"component_specifications":
 			{
 				"AddWordDefinitionTask":

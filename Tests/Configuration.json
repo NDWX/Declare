@@ -1,0 +1,27 @@
+{
+	"resources":
+	{
+		"RepeatableTaskRepeat": true
+	},
+	"component_specifications":
+	{
+		"AddWordDefinitionTask":
+		{
+			"class": "AddWordDefinitionTask",
+			"module": "TestModel",
+			"initArgs": "{$RepeatableTaskRepeat}"
+		},
+		"ListWordDefinitionsTask":
+		{
+			"class": "ListWordDefinitionsTask",
+			"module": "TestModel",
+			"lifetime": "singleton"
+		},
+		"RemoveWordDefinitionTask":
+		{
+			"class": "RemoveWordDefinitionTask",
+			"module": "TestModel",
+			"initArgs": {"repeat": "{$RepeatableTaskRepeat}"}
+		}
+	}
+}
