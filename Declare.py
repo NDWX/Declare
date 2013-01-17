@@ -25,11 +25,6 @@ class ComponentSpecificationError(ComponentError):
 
 
 class ComponentDeclaration(object):
-	__module_name__ = None
-	__class_name__ = None
-	__identifier__ = ""
-	__lifetime__ = ""
-	__init_args__ = None
 
 	def __init__(self, identifier, moduleName, className, initArgs=None, lifetime=""):
 		"""
@@ -64,9 +59,6 @@ class ComponentDeclaration(object):
 
 
 class Configuration(object):
-	__plugin_declarations__ = {}
-	__resource_declarations__ = {}
-
 	__string_formatter__ = string.Formatter()
 
 	def __init__(self, resourceDeclarations, componentDeclarations):
@@ -74,6 +66,7 @@ class Configuration(object):
 		Configuration can be created by providing a list of ComponentDeclaration object.
 		"""
 		self.__resource_declarations__ = resourceDeclarations
+		self.__plugin_declarations__ = {}
 
 		for declaration in componentDeclarations:
 			self.__plugin_declarations__[declaration.identifier()] = declaration
@@ -162,55 +155,39 @@ class Configuration(object):
 
 
 class __Specification__(object):
-	__init_args__ = None
-	__class__ = None
 
 	def __init__(self, type, initArgs):
-		self.__class__ = type
+		self.__plugin_class__ = type
 		self.__init_args__ = initArgs
 
 	def type(self):
-		return self.__class__
+		return self.__plugin_class__
 
 	def init_args(self):
 		return self.__init_args__
 
 
 class Manager(object):
-	__configuration__ = None
-	__plugin_modules__ = {}
-
-	__singleton_components__ = {}
-	__named_singleton_components__ = {}
-
-	__plugin_specifications__ = {}
-	__named_component_specifications__ = {}
 
 	__format_string__ = string.Formatter().vformat
 
 	def __is_reference_to_component__(self, value):
 		# component is identified by the following format: {name}
-		if type(value) is string:
-			return value.startswith("{") and value.endswith("}")
-		else:
-			return False
+		return value.startswith("{") and value.endswith("}")
 
 	def __is_reference_to_resource__(self, value):
 		# resource is identified by the following format: {$name}
-		if type(value) is string:
-			return value.startswith("{$") and value.endswith("}")
-		else:
-			return False
+		return value.startswith("{$") and value.endswith("}")
 
 	def __resolve_init_argument__(self, value, specification):
 		# default resolved argument to 'value' as is
 		resolvedArgument = value
 
 		# if resource value is string, it could be just a string or reference to either resource or component
-		if type(value) == string:
+		if type(value) == unicode:
 			if self.__is_reference_to_resource__(value):
 
-				resourceName = value.strip(["{$", "}"])
+				resourceName = value.strip('{$}')
 
 				if resourceName == "None":
 					# if resource value is {$None}
@@ -228,7 +205,7 @@ class Manager(object):
 
 			elif self.__is_reference_to_component__(value):
 
-				componentName = value.strip(["{", "}"])
+				componentName = value.strip(['{}'])
 
 				# if singleton with specified identifier exists
 				if self.__named_singleton_components__.has_key(componentName):
@@ -332,7 +309,7 @@ class Manager(object):
 		"""
 		pluginInstance = self.__create_instance__(__Specification__(pluginClass, declaration.init_args()))
 
-		self.__named_singleton_components__[declaration.identifier] = pluginInstance
+		self.__named_singleton_components__[declaration.identifier()] = pluginInstance
 		self.__registerSingleton__(pluginClass, pluginInstance)
 
 		for base in pluginClass.__bases__:
@@ -346,7 +323,7 @@ class Manager(object):
 		Create and register instance of the component
 		"""
 		specification = __Specification__(pluginClass, declaration.init_args())
-		self.__named_component_specifications__[declaration.identifier] = specification
+		self.__named_component_specifications__[declaration.identifier()] = specification
 
 		self.__registerSpecification__(pluginClass, specification)
 
@@ -359,9 +336,8 @@ class Manager(object):
 	def __processDeclaration__(self, declaration):
 		"""
 		Create specification or component instance based on declaration
-
 		"""
-		# if module has been loaded before
+		self.__plugin_specifications__.values()# if module has been loaded before
 		if self.__plugin_modules__.has_key(declaration.module_name()):
 			pluginModule = self.__plugin_modules__[declaration.module_name()]
 		else:
@@ -396,6 +372,13 @@ class Manager(object):
 		Initiate ComponentManager with a Configuration object
 		"""
 		self.__configuration__ = configuration
+		self.__plugin_modules__ = {}
+
+		self.__singleton_components__ = {}
+		self.__named_singleton_components__ = {}
+
+		self.__plugin_specifications__ = {}
+		self.__named_component_specifications__ = {}
 
 		for declaration in configuration.plugins():
 			self.__processDeclaration__(declaration)

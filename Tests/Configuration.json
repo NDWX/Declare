@@ -9,19 +9,19 @@
 		"AddWordDefinitionTask":
 		{
 			"class": "AddWordDefinitionTask",
-			"module": "TestModel",
-			"initArgs": "{$AddWordTaskRepeat}"
+			"module": "TestPlugins",
+			"initArgs": ["{$AddWordTaskRepeat}"]
 		},
 		"ListWordDefinitionsTask":
 		{
 			"class": "ListWordDefinitionsTask",
-			"module": "TestModel",
+			"module": "TestPlugins",
 			"lifetime": "singleton"
 		},
 		"RemoveWordDefinitionTask":
 		{
 			"class": "RemoveWordDefinitionTask",
-			"module": "TestModel",
+			"module": "TestPlugins",
 			"initArgs": {"repeat": "{$RemoveWordTaskRepeat}"}
 		}
 	}

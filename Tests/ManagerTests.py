@@ -2,9 +2,8 @@ __author__ = 'ND'
 
 import unittest
 import Declare
-
-
 from TestModel import UserTask
+
 
 class ManagerTests(unittest.TestCase):
 	"""
@@ -58,8 +57,10 @@ class ManagerTests(unittest.TestCase):
 		addWordTask = self._manager_.get_component("AddWordDefinitionTask")
 		removeWordTask = self._manager_.get_component("RemoveWordDefinitionTask")
 
-		self.assertTrue(addWordTask.Repeats() == True and removeWordTask.Repeats() == False)
+		self.assertTrue(addWordTask.repeats() == True and removeWordTask.repeats() == False)
 
+	def tearDown(self):
+		del(self._manager_)
 
 if __name__ == '__main__':
 	unittest.main()
