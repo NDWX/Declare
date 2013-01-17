@@ -1,7 +1,8 @@
 {
 	"resources":
 	{
-		"RepeatableTaskRepeat": true
+		"AddWordTaskRepeat": true,
+		"RemoveWordTaskRepeat": false
 	},
 	"component_specifications":
 	{
@@ -9,7 +10,7 @@
 		{
 			"class": "AddWordDefinitionTask",
 			"module": "TestModel",
-			"initArgs": "{$RepeatableTaskRepeat}"
+			"initArgs": "{$AddWordTaskRepeat}"
 		},
 		"ListWordDefinitionsTask":
 		{
@@ -21,7 +22,7 @@
 		{
 			"class": "RemoveWordDefinitionTask",
 			"module": "TestModel",
-			"initArgs": {"repeat": "{$RepeatableTaskRepeat}"}
+			"initArgs": {"repeat": "{$RemoveWordTaskRepeat}"}
 		}
 	}
 }
