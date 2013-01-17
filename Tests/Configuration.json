@@ -1,0 +1,28 @@
+{
+	"resources":
+	{
+		"AddWordTaskRepeat": true,
+		"RemoveWordTaskRepeat": false
+	},
+	"component_specifications":
+	{
+		"AddWordDefinitionTask":
+		{
+			"class": "AddWordDefinitionTask",
+			"module": "TestPlugins",
+			"initArgs": ["{$AddWordTaskRepeat}"]
+		},
+		"ListWordDefinitionsTask":
+		{
+			"class": "ListWordDefinitionsTask",
+			"module": "TestPlugins",
+			"lifetime": "singleton"
+		},
+		"RemoveWordDefinitionTask":
+		{
+			"class": "RemoveWordDefinitionTask",
+			"module": "TestPlugins",
+			"initArgs": {"repeat": "{$RemoveWordTaskRepeat}"}
+		}
+	}
+}
