@@ -1,9 +1,3 @@
-**Changes**
-
-* Allow declaration of resources (variables with values) in configuration file.
-* Declared resources may then be referred to in init arguments.
-* Values may be any primitive value types supported by Python
-
 # Declare
 IoC container module for Python with simple programming and configuration interface.
 
@@ -27,13 +21,13 @@ Sample configuration file:
 	"resources" :
 	{
 		"RepeatableTaskRepeat": true
-	}
+	},
 	"component_specifications":
 	{
 		"AddWordDefinitionTask": {
 			"class": "AddWordDefinitionTask",
 			"module": "StandardDictionaryUserTasks",
-			"initArgs": "{$RepeatableTaskRepeat}"
+			"initArgs": ["{$RepeatableTaskRepeat}"]
 		},
 		"ListWordDefinitionsTask":
 		{
@@ -45,7 +39,10 @@ Sample configuration file:
 		{
 			"class": "RemoveWordDefinitionTask",
 			"module": "StandardDictionaryUserTasks"
-			"initArgs": "{$RepeatableTaskRepeat}"
+			"initArgs": 
+			{
+				"repeat": "{$RepeatableTaskRepeat}"
+			}
 		}
 	}
 }
