@@ -38,7 +38,7 @@ Sample configuration file:
 		"RemoveWordDefinitionTask":
 		{
 			"class": "RemoveWordDefinitionTask",
-			"module": "StandardDictionaryUserTasks"
+			"module": "StandardDictionaryUserTasks",
 			"initArgs": 
 			{
 				"repeat": "{$RepeatableTaskRepeat}"
