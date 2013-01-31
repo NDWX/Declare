@@ -2,10 +2,7 @@
 
 __author__ = "ND"
 
-__doc__ = "Declare is designed as, among other things, an IoC container with simple programming interface and " \
-"configuration.\n\nComponentManager class provides simple interface to resolve/instantiate components configured in"\
-"PluginConfiguration object.\n\nPluginConfiguration can be configured programmatically (although it wouldn't "\
-"make much sense) or via a JSON file that can be read via the 'read' static method."
+__doc__ = 'Declare is designed as, among other things, an IoC container with simple programming interface and configuration.ComponentManager class provides simple interface to resolve/instantiate components configured inPluginConfiguration object. PluginConfiguration can be configured programmatically (although it would not make much sense) or via a JSON file that can be read via the \'read\' static method.'
 
 import string
 import json
@@ -303,6 +300,21 @@ class Manager(object):
 		if not specification in specifications:
 			specifications.append(specification)
 
+	def __register_singleton_by_type__(self, component, pluginClass, knownTypes = []):
+
+		if pluginClass in knownTypes:
+			return
+
+		self.__registerSingleton__(pluginClass, component)
+
+		knownTypes.append(pluginClass)
+
+		for base in pluginClass.__bases__:
+			if base == object:
+				continue
+
+			self.__register_singleton_by_type__(component, base, knownTypes)
+
 	def __processSingletonDeclaration__(self, declaration, pluginClass):
 		"""
 		Create and register component specification for future instantiation
@@ -310,13 +322,16 @@ class Manager(object):
 		pluginInstance = self.__create_instance__(__Specification__(pluginClass, declaration.init_args()))
 
 		self.__named_singleton_components__[declaration.identifier()] = pluginInstance
-		self.__registerSingleton__(pluginClass, pluginInstance)
 
-		for base in pluginClass.__bases__:
-			if base == object:
-				continue
+		self.__register_singleton_by_type__(pluginInstance, pluginClass)
 
-			self.__registerSingleton__(base, pluginInstance)
+#		self.__registerSingleton__(pluginClass, pluginInstance)
+#
+#		for base in pluginClass.__bases__:
+#			if base == object:
+#				continue
+#
+#			self.__registerSingleton__(base, pluginInstance)
 
 	def __processNonSingletonDeclaration__(self, declaration, pluginClass):
 		"""
@@ -382,6 +397,16 @@ class Manager(object):
 
 		for declaration in configuration.plugins():
 			self.__processDeclaration__(declaration)
+
+	def register(self, component, identifier=""):
+		"""
+		Register singleton component with specified optional identifier
+		"""
+		if len(identifier) > 0:
+			self.__singleton_components__[identifier] = component
+
+		self.__register_singleton_by_type__(component, component.__class__)
+
 
 	def get_components_of_type(self, type, lifetime="all"):
 		"""
